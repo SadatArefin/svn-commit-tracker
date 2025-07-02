@@ -4,6 +4,9 @@
 
 A desktop application for tracking SVN commits and project tasks, built with Electron.
 
+![image](https://github.com/user-attachments/assets/2617ff96-be3d-43e6-b7f6-e6bba3cdafb8)
+
+
 ## Features
 
 - ✅ **Modal-based Interface**: Professional modals replace browser prompts
