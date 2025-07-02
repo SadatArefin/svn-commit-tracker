@@ -1,0 +1,377 @@
+[
+  {
+    "id": 1700000000001,
+    "name": "GeoborgCombiApp",
+    "isCollapsed": true,
+    "tasks": [
+      {
+        "id": 1700000000002,
+        "name": "Copy to layer",
+        "status": "In Progress",
+        "isCollapsed": false,
+        "commits": [
+          {
+            "id": 1700000000003,
+            "name": "Commit 1",
+            "files": [
+              {
+                "id": 1,
+                "name": "InrichtendsTool.js",
+                "description": "call"
+              },
+              {
+                "id": 2,
+                "name": "EditorTool.js",
+                "description": "call"
+              },
+              {
+                "id": 3,
+                "name": "CommonBE.js",
+                "description": "CopyToLayer"
+              }
+            ]
+          },
+          {
+            "id": 1700000000004,
+            "name": "Commit 2",
+            "files": [
+              {
+                "id": 1,
+                "name": "CommonBE.js",
+                "description": "Fix multiple copy"
+              }
+            ]
+          },
+          {
+            "id": 1700000000005,
+            "name": "Commit 3",
+            "files": [
+              {
+                "id": 1,
+                "name": "InrichtendTool.js",
+                "description": "Style"
+              },
+              {
+                "id": 2,
+                "name": "EditorTool.js",
+                "description": "Category set (dont forget to remove moveline part)"
+              },
+              {
+                "id": 3,
+                "name": "CommonBE.js",
+                "description": "checkFeatureAlreadyExists"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1700000000006,
+        "name": "Move line",
+        "status": "In Progress",
+        "isCollapsed": true,
+        "commits": [
+          {
+            "id": 1,
+            "name": "Commit",
+            "files": [
+              {
+                "id": 1,
+                "name": "EditorTool.js",
+                "description": "MoveLine button and function (ongoing...)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1700000000007,
+        "name": "Study supercluster",
+        "status": "To Do",
+        "isCollapsed": true,
+        "commits": [
+          {
+            "id": 1,
+            "name": "Commit",
+            "files": [
+              {
+                "id": 1,
+                "name": "Study SuperCluster.js in SOR (SOR) to be implemented in BGT Editor (GeoborgCombiApp)",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1700000000008,
+        "name": "GDB",
+        "status": "In Progress",
+        "isCollapsed": false,
+        "commits": [
+          {
+            "id": 1700000000009,
+            "name": "Commit",
+            "files": [
+              {
+                "id": 1,
+                "name": "FileImportManager.js",
+                "description": "GetRecursiveDirectory - Read a folder recursively, UploadSurveyFolder - upload a folder, (UploadGdbWithImages) Rename"
+              },
+              {
+                "id": 2,
+                "name": "CommonBE.js",
+                "description": "Execute (small change for calling IndependentImageViewer)"
+              },
+              {
+                "id": 3,
+                "name": "CommonController.js",
+                "description": "(UploadFolderWithImages) Rename"
+              },
+              {
+                "id": 4,
+                "name": "ObjectUpdater.js",
+                "description": "(UploadFolderWithImages) Rename"
+              },
+              {
+                "id": 5,
+                "name": "IndependentImageViewer.js",
+                "description": "Console log, warn and error removed"
+              },
+              {
+                "id": 6,
+                "name": "BGTController.cs",
+                "description": "(UploadFolderWithImages) Rename"
+              },
+              {
+                "id": 7,
+                "name": "FeatureReader.cs",
+                "description": "ConnectImagesWithGDBPoints (Connect with RefImages Property)"
+              },
+              {
+                "id": 8,
+                "name": "GISFileReader.cs",
+                "description": "GetSurveyData"
+              },
+              {
+                "id": 9,
+                "name": "ReferenceDataManager.cs",
+                "description": "UploadFolderWithImages (if Leica -> Existing function, if GDB -> process gdb file and images)"
+              },
+              {
+                "id": 10,
+                "name": "Utilities",
+                "description": "FullPathFromGdbFiles, EnsureDirectoryExists"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1700000000010,
+        "name": "Add MutiSurface Support",
+        "status": "Done",
+        "isCollapsed": true,
+        "commits": [
+          {
+            "id": 1,
+            "name": "commit",
+            "files": [
+              {
+                "id": 1,
+                "name": "AttributeMapper.cs",
+                "description": ""
+              },
+              {
+                "id": 2,
+                "name": "ReferenceDataManager.cs",
+                "description": ""
+              },
+              {
+                "id": 3,
+                "name": "MultiSurfaceHelper.cs",
+                "description": ""
+              },
+              {
+                "id": 4,
+                "name": "Hit.BGTEditor.ReferenceStuffLib.csproj",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1700000000011,
+        "name": "show message when send to lv with no data",
+        "status": "Done",
+        "isCollapsed": true,
+        "commits": [
+          {
+            "id": 1,
+            "name": "commit",
+            "files": [
+              {
+                "id": 1,
+                "name": "MutationManager/js/script.js",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1700000000012,
+        "name": "MutationManager window should close after Annuleren",
+        "status": "Done",
+        "isCollapsed": true,
+        "commits": [
+          {
+            "id": 1,
+            "name": "commit",
+            "files": [
+              {
+                "id": 1,
+                "name": "MutationManager/js/script.js",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 1700000000013,
+        "name": "Modify BAG-VG window with new window",
+        "status": "Done",
+        "isCollapsed": true,
+        "commits": [
+          {
+            "id": 1,
+            "name": "commit 1",
+            "files": [
+              {
+                "id": 1,
+                "name": "BAG_Viewer.csproj",
+                "description": ""
+              },
+              {
+                "id": 2,
+                "name": "Default.aspx",
+                "description": ""
+              },
+              {
+                "id": 3,
+                "name": "bag.debug.js",
+                "description": ""
+              },
+              {
+                "id": 4,
+                "name": "Menu.js",
+                "description": ""
+              },
+              {
+                "id": 5,
+                "name": "PandProcessBusiness.js",
+                "description": ""
+              },
+              {
+                "id": 6,
+                "name": "PandRenovationProcess_BAG_VG_UI.js",
+                "description": ""
+              },
+              {
+                "id": 7,
+                "name": "VboProcessDataProvider.js",
+                "description": ""
+              },
+              {
+                "id": 8,
+                "name": "RPManager.js",
+                "description": ""
+              },
+              {
+                "id": 9,
+                "name": "gulfile-prod.js",
+                "description": ""
+              },
+              {
+                "id": 10,
+                "name": "gulpfile.js",
+                "description": ""
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "name": "commit 2",
+            "files": [
+              {
+                "id": 1,
+                "name": "PandProcessBusiness.js",
+                "description": ""
+              },
+              {
+                "id": 2,
+                "name": "PandRenovationProcess_BAG_VG_UI.js",
+                "description": ""
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "name": "commit 3",
+            "files": [
+              {
+                "id": 1,
+                "name": "PandRenovationProcess_BAG_VG_UI.js",
+                "description": ""
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "name": "commit 4",
+            "files": [
+              {
+                "id": 1,
+                "name": "PandProcessBusiness.js",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": 1700000000014,
+    "name": "SOR",
+    "isCollapsed": true,
+    "tasks": [
+      {
+        "id": 1700000000015,
+        "name": "Fix Sketch Layer update",
+        "status": "Done",
+        "isCollapsed": true,
+        "commits": [
+          {
+            "id": 1,
+            "name": "commit",
+            "files": [
+              {
+                "id": 1,
+                "name": "Business.js",
+                "description": ""
+              },
+              {
+                "id": 2,
+                "name": "Utilities.js",
+                "description": ""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

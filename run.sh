@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "Installing dependencies..."
+npm install
+echo ""
+echo "Starting SVN Commit Tracker..."
+npm start
