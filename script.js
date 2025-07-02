@@ -1,3 +1,38 @@
+// --- THEME MANAGEMENT ---
+const themeToggle = {
+    init: () => {
+        const toggle = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Set the initial icon state
+        if (document.documentElement.classList.contains('dark')) {
+            darkIcon.classList.add('hidden');
+            lightIcon.classList.remove('hidden');
+        } else {
+            lightIcon.classList.add('hidden');
+            darkIcon.classList.remove('hidden');
+        }
+
+        // Add toggle event listener
+        toggle.addEventListener('click', () => {
+            // Toggle dark class on html element
+            document.documentElement.classList.toggle('dark');
+
+            // Update icons
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+
+            // Save preference to localStorage
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+            // Show a notification about the theme change
+            showNotification(`Switched to ${isDark ? 'dark' : 'light'} mode`, 'success');
+        });
+    }
+};
+
 // --- DATA STORAGE ---
 let appData = [];
 let saveTimeout = null;
@@ -620,7 +655,12 @@ document.addEventListener('menu-add-project', () => {
     handleAction('add-project-btn', {});
 });
 
-
+// Add this to initialize the theme toggle on page load
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof themeToggle !== 'undefined') {
+        themeToggle.init();
+    }
+});
 
 document.getElementById("app").addEventListener("click", (e) => {
     const target = e.target.closest("[data-action]");
@@ -934,4 +974,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupMenuHandlers();
     await loadDataFromFile();
     render();
+    themeToggle.init();
 });

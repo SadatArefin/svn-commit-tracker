@@ -6,6 +6,7 @@
     "scripts": {
         "start": "electron .",
         "dev": "electron . --dev",
+        "reset-data": "electron . --reset-data",
         "build": "electron-builder",
         "build-win": "electron-builder --win",
         "build-mac": "electron-builder --mac",
@@ -41,15 +42,15 @@
         ],
         "win": {
             "target": "nsis",
-            "icon": "assets/icon.ico"
+            "icon": "assets/svn.png"
         },
         "mac": {
             "target": "dmg",
-            "icon": "assets/icon.icns"
+            "icon": "assets/svn.png"
         },
         "linux": {
             "target": "AppImage",
-            "icon": "assets/icon.png"
+            "icon": "assets/svn.png"
         }
     }
 }

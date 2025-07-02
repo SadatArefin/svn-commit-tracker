@@ -1,0 +1,12 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Convert SVN icon",
+			"type": "shell",
+			"command": "if ($IsWindows) { .\\create-ico.bat } else { bash ./create-icns.sh }",
+			"group": "build",
+			"problemMatcher": []
+		}
+	]
+}

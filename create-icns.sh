@@ -1,0 +1,32 @@
+#!/bin/bash
+echo "Converting SVN.png to icon.icns for macOS..."
+
+echo "To properly convert the PNG to ICNS format, you have a few options:"
+
+echo "Option 1: Use an online converter:"
+echo "- Visit https://convertio.co/png-icns/ or similar website"
+echo "- Upload assets/svn.png"
+echo "- Download the converted icon.icns file"
+echo "- Place it in the assets folder"
+
+echo "Option 2: Use iconutil on macOS:"
+echo "1. Create a temporary iconset directory:"
+echo "   mkdir temp.iconset"
+echo "2. Create various sized PNG files:"
+echo "   sips -z 16 16 assets/svn.png --out temp.iconset/icon_16x16.png"
+echo "   sips -z 32 32 assets/svn.png --out temp.iconset/icon_16x16@2x.png"
+echo "   sips -z 32 32 assets/svn.png --out temp.iconset/icon_32x32.png"
+echo "   sips -z 64 64 assets/svn.png --out temp.iconset/icon_32x32@2x.png"
+echo "   sips -z 128 128 assets/svn.png --out temp.iconset/icon_128x128.png"
+echo "   sips -z 256 256 assets/svn.png --out temp.iconset/icon_128x128@2x.png"
+echo "   sips -z 256 256 assets/svn.png --out temp.iconset/icon_256x256.png"
+echo "   sips -z 512 512 assets/svn.png --out temp.iconset/icon_256x256@2x.png"
+echo "   sips -z 512 512 assets/svn.png --out temp.iconset/icon_512x512.png"
+echo "   sips -z 1024 1024 assets/svn.png --out temp.iconset/icon_512x512@2x.png"
+echo "3. Convert the iconset to icns:"
+echo "   iconutil -c icns temp.iconset -o assets/icon.icns"
+echo "4. Clean up:"
+echo "   rm -R temp.iconset"
+
+echo "After creating the icon.icns file, you can build your application:"
+echo "npm run build-mac"

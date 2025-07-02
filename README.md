@@ -1,5 +1,7 @@
 # SVN Commit Tracker - Electron Desktop App
 
+<img src="assets/svn.png" alt="SVN Commit Tracker" width="64" height="64" align="right"/>
+
 A desktop application for tracking SVN commits and project tasks, built with Electron.
 
 ## Features
@@ -45,6 +47,11 @@ npm run build-mac    # macOS
 npm run build-linux  # Linux
 ```
 
+> **Note:** Before building for Windows or macOS, you need to convert the SVN.png icon to the appropriate format:
+>
+> - For Windows: Run `create-ico.bat` to convert to .ico format
+> - For macOS: Run `create-icns.sh` to convert to .icns format
+
 ## Project Structure
 
 ```
@@ -77,9 +84,28 @@ svn-commit-tracker/
 
 ### Data Storage
 
-- Data is automatically saved to `tasks.json` in the application directory
+- Data is automatically saved to `tasks.json` in the user's application data folder
+  - Windows: `%APPDATA%\Local\svn-commit-tracker\tasks.json`
+  - macOS: `~/Library/Application Support/svn-commit-tracker/tasks.json`
+  - Linux: `~/.config/svn-commit-tracker/tasks.json`
+- The file is created automatically on first launch with a default project and task
 - Changes are auto-saved after a 500ms delay to prevent excessive writes
 - The save status is shown in the header (✓ Auto-saved / ✗ Save failed)
+
+### Troubleshooting
+
+- **Reset Data**: If you encounter issues with corrupted data
+  ```bash
+  npm run reset-data
+  ```
+  Or in the installed application:
+  ```bash
+  svn-commit-tracker.exe --reset-data
+  ```
+- **Check Installation**: Run `check-installation.bat` (Windows) to verify your installation
+- **File Locations**:
+  - In development: File is saved in the project root folder
+  - In production: File is saved in the user's application data folder
 
 ## Development
 

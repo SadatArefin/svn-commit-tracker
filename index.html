@@ -1,19 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Project Task Tracker</title>
+		<title>SVN Commit Tracker</title>
+		<link rel="icon" href="assets/svn.png" type="image/png" />
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		<script>
+			// Initialize theme from local storage
+			if (
+				localStorage.getItem("theme") === "dark" ||
+				(!localStorage.getItem("theme") &&
+					window.matchMedia("(prefers-color-scheme: dark)").matches)
+			) {
+				document.documentElement.classList.add("dark");
+			} else {
+				document.documentElement.classList.remove("dark");
+			}
+		</script>
 		<link rel="stylesheet" href="style.css" />
 	</head>
-	<body class="bg-gray-100 font-sans overflow-hidden">
+	<body
+		class="bg-gray-100 dark:bg-gray-900 font-sans overflow-hidden text-gray-800 dark:text-gray-200 transition-colors duration-200"
+	>
 		<div id="app" class="flex h-screen">
 			<!-- Sidebar Navigation -->
-			<aside class="w-80 bg-white shadow-lg flex flex-col">
-				<header class="p-4 border-b border-gray-200">
-					<h1 class="text-xl font-bold text-gray-800">SVN Commit Tracker</h1>
-					<p id="version-info" class="text-xs text-gray-500 mt-1"></p>
+			<aside
+				class="w-80 bg-white dark:bg-gray-800 shadow-lg flex flex-col border-r border-gray-200 dark:border-gray-700"
+			>
+				<header class="p-4 border-b border-gray-200 dark:border-gray-700">
+					<h1
+						class="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center"
+					>
+						<img src="assets/svn.png" alt="SVN" class="mr-2 h-6 w-6" />
+						SVN Commit Tracker
+					</h1>
+					<p
+						id="version-info"
+						class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+					></p>
 				</header>
 
 				<!-- Navigation Content -->
@@ -24,38 +49,72 @@
 				</div>
 
 				<!-- Sidebar Footer -->
-				<div class="p-4 border-t border-gray-200">
+				<div class="p-4 border-t border-gray-200 dark:border-gray-700">
+					<div class="flex justify-between items-center mb-4">
+						<button
+							id="theme-toggle"
+							class="p-2 text-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+							title="Toggle Dark/Light Mode"
+						>
+							<svg
+								id="theme-toggle-dark-icon"
+								class="w-5 h-5 hidden"
+								fill="currentColor"
+								viewBox="0 0 20 20"
+							>
+								<path
+									d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+								></path>
+							</svg>
+							<svg
+								id="theme-toggle-light-icon"
+								class="w-5 h-5 hidden"
+								fill="currentColor"
+								viewBox="0 0 20 20"
+							>
+								<path
+									fill-rule="evenodd"
+									d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+									clip-rule="evenodd"
+								></path>
+							</svg>
+						</button>
+						<div
+							id="save-status"
+							class="text-xs text-center text-green-600 dark:text-green-400 hidden"
+						>
+							<span>✓ Auto-saved</span>
+						</div>
+					</div>
 					<button
 						id="add-project-btn"
-						class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-3 rounded-md text-sm transition-colors"
+						class="w-full bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-medium py-2 px-3 rounded-md text-sm transition-colors"
 						data-action="add-project-btn"
 					>
 						+ Add New Project
 					</button>
-					<div
-						id="save-status"
-						class="text-xs text-center mt-2 text-green-600 hidden"
-					>
-						<span>✓ Auto-saved</span>
-					</div>
 				</div>
 			</aside>
 
 			<!-- Main Content Area -->
 			<main class="flex-1 flex flex-col overflow-hidden">
 				<!-- Breadcrumb Navigation -->
-				<header class="bg-white border-b border-gray-200 px-6 py-4">
+				<header
+					class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4"
+				>
 					<nav id="breadcrumb" class="flex items-center space-x-2 text-sm">
-						<span class="text-gray-500">Select a project to get started</span>
+						<span class="text-gray-500 dark:text-gray-400"
+							>Select a project to get started</span
+						>
 					</nav>
 				</header>
 
 				<!-- Content Display -->
-				<div class="flex-1 overflow-y-auto p-6">
+				<div class="flex-1 overflow-y-auto p-6 bg-gray-100 dark:bg-gray-900">
 					<div id="main-content" class="max-w-4xl">
 						<!-- Main content will be rendered here -->
 						<div class="text-center py-12">
-							<div class="text-gray-400 mb-4">
+							<div class="text-gray-400 dark:text-gray-500 mb-4">
 								<svg
 									class="w-16 h-16 mx-auto"
 									fill="none"
@@ -70,10 +129,12 @@
 									></path>
 								</svg>
 							</div>
-							<h2 class="text-xl font-semibold text-gray-700 mb-2">
+							<h2
+								class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2"
+							>
 								Welcome to SVN Commit Tracker
 							</h2>
-							<p class="text-gray-500">
+							<p class="text-gray-500 dark:text-gray-400">
 								Select a project from the sidebar to view its tasks, commits,
 								and files.
 							</p>
@@ -88,10 +149,18 @@
 			id="modal"
 			class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
 		>
-			<div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+			<div
+				class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+			>
 				<div class="flex justify-between items-center mb-4">
-					<h3 id="modal-title" class="text-lg font-semibold text-gray-800"></h3>
-					<button id="modal-close" class="text-gray-400 hover:text-gray-600">
+					<h3
+						id="modal-title"
+						class="text-lg font-semibold text-gray-800 dark:text-gray-200"
+					></h3>
+					<button
+						id="modal-close"
+						class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+					>
 						<svg
 							class="w-6 h-6"
 							fill="none"
@@ -113,13 +182,13 @@
 				<div class="flex justify-end space-x-3 mt-6">
 					<button
 						id="modal-cancel"
-						class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+						class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
 					>
 						Cancel
 					</button>
 					<button
 						id="modal-confirm"
-						class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+						class="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600"
 					>
 						Save
 					</button>

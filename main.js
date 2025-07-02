@@ -1,9 +1,55 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, nativeTheme } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 
 let mainWindow;
-const TASKS_FILE = path.join(__dirname, 'tasks.json');
+// In development mode, use a local file for easier debugging
+const isDev = process.argv.includes('--dev');
+const TASKS_FILE = isDev ? path.join(__dirname, 'tasks.json') : getUserDataPath();
+
+// Get the appropriate path for storing user data
+function getUserDataPath() {
+    // In production, use the app's user data directory
+    // This ensures the file is stored in the user's profile on Windows
+    const userDataPath = app.getPath('userData');
+    return path.join(userDataPath, 'tasks.json');
+}
+
+// Default tasks template - basic structure to use when creating a new tasks.json
+const DEFAULT_TASKS = [
+    {
+        "id": Date.now(),
+        "name": "My First Project",
+        "isCollapsed": false,
+        "tasks": [
+            {
+                "id": Date.now() + 1,
+                "name": "Initial Task",
+                "status": "To Do",
+                "isCollapsed": false,
+                "commits": []
+            }
+        ]
+    }
+];
+
+// Check if tasks.json exists, if not create it with default content
+async function initTasksFile() {
+    try {
+        // Check if the file exists
+        await fs.access(TASKS_FILE);
+        console.log('tasks.json exists, no initialization needed');
+    } catch (error) {
+        // File doesn't exist, create it with default content
+        console.log('Creating default tasks.json file');
+        try {
+            await fs.writeFile(TASKS_FILE, JSON.stringify(DEFAULT_TASKS, null, 2), 'utf8');
+            console.log('Default tasks.json created successfully');
+        } catch (writeError) {
+            console.error('Error creating default tasks.json:', writeError);
+        }
+    }
+}
 
 function createWindow() {
   // Create the browser window
@@ -17,7 +63,7 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, 'assets', 'icon.png'), // Add icon if available
+      icon: path.join(__dirname, 'assets', 'svn.png'), // Use SVN icon
     show: false // Don't show until ready
   });
 
@@ -169,9 +215,15 @@ function createMenu() {
 }
 
 // App event handlers
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    // Initialize tasks file before creating the window to ensure it exists
+    await initTasksFile();
+
   createWindow();
   createMenu();
+
+    // Handle command line arguments
+    handleCommandLineArgs();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -189,18 +241,54 @@ app.on('window-all-closed', () => {
 // IPC handlers for file operations
 ipcMain.handle('load-tasks', async () => {
   try {
+      // Try to read the existing file
     const data = await fs.readFile(TASKS_FILE, 'utf8');
-    return JSON.parse(data);
+      try {
+        return JSON.parse(data);
+    } catch (parseError) {
+        console.error('Error parsing tasks.json, file may be corrupted:', parseError);
+        // Create a backup of the corrupted file
+        const backupFile = `${TASKS_FILE}.backup-${Date.now()}`;
+        await fs.writeFile(backupFile, data, 'utf8');
+        console.log(`Backed up corrupted tasks.json to ${backupFile}`);
+
+        // Return default tasks for corrupted file
+        return DEFAULT_TASKS;
+    }
   } catch (error) {
     console.error('Error loading tasks:', error);
-    // Return empty array if file doesn't exist or is corrupted
+      // If file doesn't exist, create it with default content
+      if (error.code === 'ENOENT') {
+          try {
+              await fs.writeFile(TASKS_FILE, JSON.stringify(DEFAULT_TASKS, null, 2), 'utf8');
+              console.log('Created default tasks.json during load operation');
+              return DEFAULT_TASKS;
+          } catch (writeError) {
+              console.error('Error creating default tasks.json during load:', writeError);
+          }
+      }
+      // Return empty array if other errors occur
     return [];
   }
 });
 
 ipcMain.handle('save-tasks', async (event, data) => {
   try {
+      // Ensure the directory exists
+      const dirPath = path.dirname(TASKS_FILE);
+      try {
+          await fs.access(dirPath);
+      } catch (dirError) {
+          // Create directory if it doesn't exist
+          if (dirError.code === 'ENOENT') {
+              await fs.mkdir(dirPath, { recursive: true });
+              console.log(`Created directory: ${dirPath}`);
+          }
+      }
+
+      // Save the data
     await fs.writeFile(TASKS_FILE, JSON.stringify(data, null, 2), 'utf8');
+      console.log('Tasks saved successfully');
     return { success: true };
   } catch (error) {
     console.error('Error saving tasks:', error);
@@ -228,6 +316,14 @@ ipcMain.handle('import-tasks', async (event, filePath) => {
   }
 });
 
+// Handle system theme preference
+ipcMain.handle('get-system-prefers-dark', () => {
+    if (nativeTheme) {
+        return nativeTheme.shouldUseDarkColors;
+    }
+    return false;
+});
+
 // Handle app certificate errors (for development)
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
   if (process.argv.includes('--dev')) {
@@ -237,3 +333,37 @@ app.on('certificate-error', (event, webContents, url, error, certificate, callba
     callback(false);
   }
 });
+
+// Handle command line arguments
+function handleCommandLineArgs() {
+    // Check for --reset-data flag to reset the tasks.json file
+    if (process.argv.includes('--reset-data')) {
+        console.log('Reset data flag detected, creating new tasks.json file');
+        try {
+            fs.writeFileSync(TASKS_FILE, JSON.stringify(DEFAULT_TASKS, null, 2), 'utf8');
+            console.log('Tasks data reset successfully');
+
+            // Show confirmation dialog
+            if (mainWindow) {
+                dialog.showMessageBox(mainWindow, {
+                    type: 'info',
+                    title: 'Data Reset',
+                    message: 'The tasks data has been reset successfully.',
+                    buttons: ['OK']
+                });
+            }
+        } catch (error) {
+            console.error('Error resetting tasks data:', error);
+
+            // Show error dialog
+            if (mainWindow) {
+                dialog.showErrorBox(
+                    'Data Reset Failed',
+                    `Failed to reset tasks data: ${error.message}`
+                );
+            }
+        }
+    }
+}
+
+// Get the appropriate path for storing user data

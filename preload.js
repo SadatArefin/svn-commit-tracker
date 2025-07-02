@@ -26,5 +26,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     node: process.versions.node,
     chrome: process.versions.chrome,
     electron: process.versions.electron
-  }
+  },
+
+  // Theme settings
+  getSystemPrefersDark: () => ipcRenderer.invoke('get-system-prefers-dark')
 });
