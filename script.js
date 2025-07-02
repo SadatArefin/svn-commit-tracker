@@ -2,6 +2,14 @@
 let appData = [];
 let saveTimeout = null;
 
+// --- NAVIGATION STATE ---
+let navigationState = {
+    selectedProject: null,
+    selectedTask: null,
+    selectedCommit: null,
+    selectedFile: null
+};
+
 // --- ELECTRON API CHECK ---
 const isElectron = typeof window.electronAPI !== 'undefined';
 
@@ -225,12 +233,12 @@ const showVersionInfo = () => {
 const getStatusClass = (status) => {
     switch (status) {
         case "Done":
-            return "bg-green-100 text-green-800";
+            return "status-done";
         case "In Progress":
-            return "bg-yellow-100 text-yellow-800";
+            return "status-progress";
         case "To Do":
         default:
-            return "bg-blue-100 text-blue-800";
+            return "status-todo";
     }
 };
 
@@ -250,118 +258,369 @@ const findItem = (id) => {
     return {};
 };
 
-const render = () => {
-    const container = document.getElementById("projects-container");
-    container.innerHTML = "";
+// --- NAVIGATION FUNCTIONS ---
+const selectProject = (projectId) => {
+    navigationState.selectedProject = projectId;
+    navigationState.selectedTask = null;
+    navigationState.selectedCommit = null;
+    navigationState.selectedFile = null;
+    render();
+};
+
+const selectTask = (taskId) => {
+    navigationState.selectedTask = taskId;
+    navigationState.selectedCommit = null;
+    navigationState.selectedFile = null;
+    render();
+};
+
+const selectCommit = (commitId) => {
+    navigationState.selectedCommit = commitId;
+    navigationState.selectedFile = null;
+    render();
+};
+
+const selectFile = (fileId) => {
+    navigationState.selectedFile = fileId;
+    render();
+};
+
+// --- SIDEBAR RENDERING ---
+const renderSidebar = () => {
+    const sidebarContent = document.getElementById('sidebar-content');
 
     if (appData.length === 0) {
-        container.innerHTML = `<div class="text-center p-8 bg-white rounded-lg shadow-md">
-                <h2 class="text-2xl font-semibold text-gray-700">No Projects Found</h2>
-                <p class="text-gray-500 mt-2">Click "Add New Project" below to get started or load data from a JSON file.</p>
+        sidebarContent.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <p class="text-sm">No projects yet</p>
+                <p class="text-xs mt-1">Click "Add New Project" below</p>
             </div>`;
+        return;
     }
 
-    appData.forEach((project) => {
-        const projectEl = document.createElement("div");
-        projectEl.className = `bg-white rounded-lg shadow-md overflow-hidden ${project.isCollapsed ? "collapsed" : ""
-            }`;
-        projectEl.innerHTML = `
-                <header class="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200 cursor-pointer" data-action="toggle-collapse" data-id="${project.id
-            }">
-                    <div class="flex items-center">
-                        <svg class="w-6 h-6 text-gray-500 mr-3 icon-rotate" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        <h2 class="text-2xl font-bold text-gray-800">${project.name
-            }</h2>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="text-sm bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600" data-action="add-task" data-project-id="${project.id
-            }">+ Add Task</button>
-                        <button class="text-sm bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600" data-action="delete-project" data-id="${project.id
-            }">Delete</button>
-                    </div>
-                </header>
-                <div class="collapsible-content">
-                    <div class="p-4 space-y-4">
-                        ${project.tasks
-                .map(
-                    (task) => `
-                            <div class="bg-gray-50 rounded-lg border border-gray-200 ${task.isCollapsed ? "collapsed" : ""
-                        }">
-                                <header class="flex justify-between items-center p-3 bg-white border-b border-gray-200 cursor-pointer" data-action="toggle-collapse" data-id="${task.id
-                        }">
-                                    <div class="flex items-center">
-                                        <svg class="w-5 h-5 text-gray-500 mr-2 icon-rotate" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                        <h3 class="text-lg font-semibold text-gray-700">${task.name
-                        }</h3>
-                                        <span class="text-xs font-medium ml-3 px-2 py-0.5 rounded-full ${getStatusClass(
-                            task.status
-                        )}">${task.status}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <button class="text-xs bg-gray-200 text-gray-700 py-1 px-2 rounded hover:bg-gray-300" data-action="edit-task" data-id="${task.id
-                        }">Edit</button>
-                                        <button class="text-xs bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600" data-action="delete-task" data-id="${task.id
-                        }">Delete</button>
-                                    </div>
-                                </header>
-                                <div class="collapsible-content">
-                                    <div class="p-4">
-                                        <button class="w-full text-sm text-center border-2 border-dashed border-gray-300 text-gray-500 rounded-md py-2 hover:bg-gray-100 hover:border-gray-400 mb-3" data-action="add-commit" data-task-id="${task.id
-                        }">+ Add Commit</button>
-                                        <div class="space-y-3">
-                                            ${task.commits
-                            .map(
-                                (commit) => `
-                                                <div class="border border-gray-200 rounded-md p-3">
-                                                    <div class="flex justify-between items-center mb-2">
-                                                        <h4 class="font-semibold text-gray-600">${commit.name
-                                    }</h4>
-                                                        <div>
-                                                           <button class="text-xs bg-gray-200 text-gray-700 py-1 px-2 rounded hover:bg-gray-300" data-action="edit-commit" data-id="${commit.id
-                                    }">Edit</button>
-                                                           <button class="text-xs bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600" data-action="delete-commit" data-id="${commit.id
-                                    }">Del</button>
-                                                        </div>
-                                                    </div>
-                                                    <ul class="list-disc list-inside space-y-1 pl-2 text-gray-800">
-                                                        ${commit.files
-                                        .map(
-                                            (file) => `
-                                                            <li class="group">
-                                                                <span class="font-mono text-sm bg-gray-100 px-1 rounded">${file.name
-                                                }</span>
-                                                                ${file.description
-                                                    ? `<span class="text-sm text-gray-500 italic ml-2">- ${file.description}</span>`
-                                                    : ""
-                                                }
-                                                                <button class="text-xs opacity-0 group-hover:opacity-100 text-blue-500 hover:underline ml-2" data-action="edit-file" data-id="${file.id
-                                                }">edit</button>
-                                                                <button class="text-xs opacity-0 group-hover:opacity-100 text-red-500 hover:underline ml-1" data-action="delete-file" data-id="${file.id
-                                                }">del</button>
-                                                            </li>
-                                                        `
-                                        )
-                                        .join("")}
-                                                    </ul>
-                                                    <button class="text-xs w-full text-left mt-2 text-blue-600 hover:underline" data-action="add-file" data-commit-id="${commit.id
-                                    }">+ Add file</button>
-                                                </div>
-                                            `
-                            )
-                            .join("")}
-                                        </div>
-                                    </div>
-                                </div>
+    let html = '<div class="space-y-1">';
+
+    // Render projects
+    appData.forEach(project => {
+        const isSelected = navigationState.selectedProject === project.id;
+        const taskCount = project.tasks.length;
+
+        html += `
+            <div class="nav-item nav-level-0 ${isSelected ? 'active' : ''}" 
+                 data-action="select-project" data-id="${project.id}">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                </svg>
+                <span class="nav-text">${project.name}</span>
+                <span class="nav-badge">${taskCount}</span>
+            </div>`;
+
+        // Render tasks if project is selected
+        if (isSelected && project.tasks.length > 0) {
+            project.tasks.forEach(task => {
+                const isTaskSelected = navigationState.selectedTask === task.id;
+                const commitCount = task.commits.length;
+
+                html += `
+                    <div class="nav-item nav-level-1 ${isTaskSelected ? 'active' : ''}" 
+                         data-action="select-task" data-id="${task.id}">
+                        <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <span class="nav-text">${task.name}</span>
+                        <span class="status-badge ${getStatusClass(task.status)}">${task.status}</span>
+                        <span class="nav-badge">${commitCount}</span>
+                    </div>`;
+
+                // Render commits if task is selected
+                if (isTaskSelected && task.commits.length > 0) {
+                    task.commits.forEach(commit => {
+                        const isCommitSelected = navigationState.selectedCommit === commit.id;
+                        const fileCount = commit.files.length;
+
+                        html += `
+                            <div class="nav-item nav-level-2 ${isCommitSelected ? 'active' : ''}" 
+                                 data-action="select-commit" data-id="${commit.id}">
+                                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="nav-text">${commit.name}</span>
+                                <span class="nav-badge">${fileCount}</span>
+                            </div>`;
+                    });
+                }
+            });
+        }
+    });
+
+    html += '</div>';
+    sidebarContent.innerHTML = html;
+};
+
+// --- BREADCRUMB RENDERING ---
+const renderBreadcrumb = () => {
+    const breadcrumb = document.getElementById('breadcrumb');
+    let html = '';
+
+    if (!navigationState.selectedProject) {
+        html = '<span class="breadcrumb-item">Select a project to get started</span>';
+    } else {
+        const { project, task, commit } = findItem(navigationState.selectedProject);
+
+        html += `<span class="breadcrumb-item active">${project.name}</span>`;
+
+        if (navigationState.selectedTask) {
+            const selectedTask = findItem(navigationState.selectedTask).task;
+            html += '<span class="breadcrumb-separator">›</span>';
+            html += `<span class="breadcrumb-item active">${selectedTask.name}</span>`;
+
+            if (navigationState.selectedCommit) {
+                const selectedCommit = findItem(navigationState.selectedCommit).commit;
+                html += '<span class="breadcrumb-separator">›</span>';
+                html += `<span class="breadcrumb-item active">${selectedCommit.name}</span>`;
+            }
+        }
+    }
+
+    breadcrumb.innerHTML = html;
+};
+
+// --- MAIN CONTENT RENDERING ---
+const renderMainContent = () => {
+    const mainContent = document.getElementById('main-content');
+
+    if (!navigationState.selectedProject) {
+        mainContent.innerHTML = `
+            <div class="text-center py-12">
+                <div class="text-gray-400 mb-4">
+                    <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-700 mb-2">Welcome to SVN Commit Tracker</h2>
+                <p class="text-gray-500">Select a project from the sidebar to view its tasks, commits, and files.</p>
+            </div>`;
+        return;
+    }
+
+    if (navigationState.selectedCommit) {
+        renderCommitFiles();
+    } else if (navigationState.selectedTask) {
+        renderTaskCommits();
+    } else {
+        renderProjectTasks();
+    }
+};
+
+const renderProjectTasks = () => {
+    const mainContent = document.getElementById('main-content');
+    const project = findItem(navigationState.selectedProject).project;
+
+    if (!project) return;
+
+    let html = `
+        <div class="content-card">
+            <div class="content-header">
+                <div>
+                    <h1 class="content-title">${project.name}</h1>
+                    <p class="content-subtitle">${project.tasks.length} tasks</p>
+                </div>
+                <div class="content-actions">
+                    <button class="btn btn-primary" data-action="add-task" data-project-id="${project.id}">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Add Task
+                    </button>
+                    <button class="btn btn-secondary" data-action="edit-project" data-id="${project.id}">Edit</button>
+                    <button class="btn btn-danger" data-action="delete-project" data-id="${project.id}">Delete</button>
+                </div>
+            </div>
+        </div>`;
+
+    if (project.tasks.length === 0) {
+        html += `
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" 
+                          d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <h3 class="text-lg font-medium mb-2">No tasks yet</h3>
+                <p class="mb-4">Add your first task to get started</p>
+                <button class="btn btn-primary" data-action="add-task" data-project-id="${project.id}">Add Task</button>
+            </div>`;
+    } else {
+        project.tasks.forEach(task => {
+            const commitCount = task.commits.length;
+            html += `
+                <div class="content-card">
+                    <div class="content-header">
+                        <div>
+                            <h2 class="content-title">${task.name}</h2>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="status-badge ${getStatusClass(task.status)}">${task.status}</span>
+                                <span class="content-subtitle">${commitCount} commits</span>
                             </div>
-                        `
-                )
-                .join("")}
+                        </div>
+                        <div class="content-actions">
+                            <button class="btn btn-primary btn-sm" data-action="select-task" data-id="${task.id}">View Details</button>
+                            <button class="btn btn-secondary btn-sm" data-action="edit-task" data-id="${task.id}">Edit</button>
+                            <button class="btn btn-danger btn-sm" data-action="delete-task" data-id="${task.id}">Delete</button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    mainContent.innerHTML = html;
+};
+
+const renderTaskCommits = () => {
+    const mainContent = document.getElementById('main-content');
+    const { project, task } = findItem(navigationState.selectedTask);
+
+    if (!task) return;
+
+    let html = `
+        <div class="content-card">
+            <div class="content-header">
+                <div>
+                    <h1 class="content-title">${task.name}</h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="status-badge ${getStatusClass(task.status)}">${task.status}</span>
+                        <span class="content-subtitle">${task.commits.length} commits</span>
                     </div>
                 </div>
-            `;
-        container.appendChild(projectEl);
-    });
+                <div class="content-actions">
+                    <button class="btn btn-primary" data-action="add-commit" data-task-id="${task.id}">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Add Commit
+                    </button>
+                    <button class="btn btn-secondary" data-action="edit-task" data-id="${task.id}">Edit</button>
+                    <button class="btn btn-danger" data-action="delete-task" data-id="${task.id}">Delete</button>
+                </div>
+            </div>
+        </div>`;
+
+    if (task.commits.length === 0) {
+        html += `
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" 
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="text-lg font-medium mb-2">No commits yet</h3>
+                <p class="mb-4">Add your first commit to track changes</p>
+                <button class="btn btn-primary" data-action="add-commit" data-task-id="${task.id}">Add Commit</button>
+            </div>`;
+    } else {
+        task.commits.forEach(commit => {
+            const fileCount = commit.files.length;
+            html += `
+                <div class="content-card">
+                    <div class="content-header">
+                        <div>
+                            <h2 class="content-title">${commit.name}</h2>
+                            <p class="content-subtitle">${fileCount} files</p>
+                        </div>
+                        <div class="content-actions">
+                            <button class="btn btn-primary btn-sm" data-action="select-commit" data-id="${commit.id}">View Files</button>
+                            <button class="btn btn-secondary btn-sm" data-action="edit-commit" data-id="${commit.id}">Edit</button>
+                            <button class="btn btn-danger btn-sm" data-action="delete-commit" data-id="${commit.id}">Delete</button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    mainContent.innerHTML = html;
 };
+
+const renderCommitFiles = () => {
+    const mainContent = document.getElementById('main-content');
+    const { project, task, commit } = findItem(navigationState.selectedCommit);
+
+    if (!commit) return;
+
+    let html = `
+        <div class="content-card">
+            <div class="content-header">
+                <div>
+                    <h1 class="content-title">${commit.name}</h1>
+                    <p class="content-subtitle">${commit.files.length} files</p>
+                </div>
+                <div class="content-actions">
+                    <button class="btn btn-primary" data-action="add-file" data-commit-id="${commit.id}">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Add File
+                    </button>
+                    <button class="btn btn-secondary" data-action="edit-commit" data-id="${commit.id}">Edit</button>
+                    <button class="btn btn-danger" data-action="delete-commit" data-id="${commit.id}">Delete</button>
+                </div>
+            </div>
+        </div>`;
+
+    if (commit.files.length === 0) {
+        html += `
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" 
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3 class="text-lg font-medium mb-2">No files yet</h3>
+                <p class="mb-4">Add files to track changes in this commit</p>
+                <button class="btn btn-primary" data-action="add-file" data-commit-id="${commit.id}">Add File</button>
+            </div>`;
+    } else {
+        html += '<ul class="file-list">';
+        commit.files.forEach(file => {
+            html += `
+                <li class="file-item">
+                    <span class="file-name">${file.name}</span>
+                    <span class="file-description">${file.description || 'No description'}</span>
+                    <div class="file-actions">
+                        <button class="btn btn-secondary btn-sm" data-action="edit-file" data-id="${file.id}">Edit</button>
+                        <button class="btn btn-danger btn-sm" data-action="delete-file" data-id="${file.id}">Delete</button>
+                    </div>
+                </li>`;
+        });
+        html += '</ul>';
+    }
+
+    mainContent.innerHTML = html;
+};
+
+// --- MAIN RENDER FUNCTION ---
+const render = () => {
+    renderSidebar();
+    renderBreadcrumb();
+    renderMainContent();
+};
+
+document.getElementById("app").addEventListener("click", (e) => {
+    const target = e.target.closest("[data-action]");
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const id = Number(target.dataset.id);
+    const { project, task, commit, file } = findItem(id);
+
+    handleAction(action, { target, id, project, task, commit, file });
+});
+
+// Handle menu-triggered add project
+document.addEventListener('menu-add-project', () => {
+    handleAction('add-project-btn', {});
+});
+
+
 
 document.getElementById("app").addEventListener("click", (e) => {
     const target = e.target.closest("[data-action]");
@@ -382,6 +641,22 @@ document.addEventListener('menu-add-project', () => {
 // --- ACTION HANDLER ---
 const handleAction = (action, { target, id, project, task, commit, file }) => {
     switch (action) {
+        case "select-project": {
+            selectProject(id);
+            break;
+        }
+        case "select-task": {
+            selectTask(id);
+            break;
+        }
+        case "select-commit": {
+            selectCommit(id);
+            break;
+        }
+        case "select-file": {
+            selectFile(id);
+            break;
+        }
         case "add-project-btn": {
             modal.show(
                 "Add New Project",
@@ -392,13 +667,13 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
                 () => {
                     const name = document.getElementById('project-name').value.trim();
                     if (name) {
-                        appData.push({
+                        const newProject = {
                             id: Date.now(),
                             name,
-                            isCollapsed: false,
                             tasks: [],
-                        });
-                        render();
+                        };
+                        appData.push(newProject);
+                        selectProject(newProject.id);
                         return true;
                     }
                     return false;
@@ -418,14 +693,14 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
                     const name = document.getElementById('task-name').value.trim();
                     if (name) {
                         const { project } = findItem(projectId);
-                        project.tasks.push({
+                        const newTask = {
                             id: Date.now(),
                             name,
                             status: "To Do",
-                            isCollapsed: false,
                             commits: [],
-                        });
-                        render();
+                        };
+                        project.tasks.push(newTask);
+                        selectTask(newTask.id);
                         return true;
                     }
                     return false;
@@ -445,8 +720,9 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
                     const name = document.getElementById('commit-name').value.trim();
                     if (name) {
                         const { task } = findItem(taskId);
-                        task.commits.push({ id: Date.now(), name, files: [] });
-                        render();
+                        const newCommit = { id: Date.now(), name, files: [] };
+                        task.commits.push(newCommit);
+                        selectCommit(newCommit.id);
                         return true;
                     }
                     return false;
@@ -484,6 +760,25 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
             );
             break;
         }
+        case "edit-project": {
+            modal.show(
+                "Edit Project",
+                `<div>
+                    <label class="modal-label" for="edit-project-name">Project Name</label>
+                    <input type="text" id="edit-project-name" class="modal-input" value="${project.name}">
+                </div>`,
+                () => {
+                    const newName = document.getElementById('edit-project-name').value.trim();
+                    if (newName) {
+                        project.name = newName;
+                        render();
+                        return true;
+                    }
+                    return false;
+                }
+            );
+            break;
+        }
         case "delete-project": {
             modal.show(
                 "Delete Project",
@@ -493,6 +788,10 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
                 </div>`,
                 () => {
                     appData = appData.filter((p) => p.id !== id);
+                    navigationState.selectedProject = null;
+                    navigationState.selectedTask = null;
+                    navigationState.selectedCommit = null;
+                    navigationState.selectedFile = null;
                     render();
                     return true;
                 }
@@ -508,6 +807,11 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
                 </div>`,
                 () => {
                     project.tasks = project.tasks.filter((t) => t.id !== id);
+                    if (navigationState.selectedTask === id) {
+                        navigationState.selectedTask = null;
+                        navigationState.selectedCommit = null;
+                        navigationState.selectedFile = null;
+                    }
                     render();
                     return true;
                 }
@@ -523,6 +827,10 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
                 </div>`,
                 () => {
                     task.commits = task.commits.filter((c) => c.id !== id);
+                    if (navigationState.selectedCommit === id) {
+                        navigationState.selectedCommit = null;
+                        navigationState.selectedFile = null;
+                    }
                     render();
                     return true;
                 }
@@ -615,15 +923,6 @@ const handleAction = (action, { target, id, project, task, commit, file }) => {
                     return false;
                 }
             );
-            break;
-        }
-        case "toggle-collapse": {
-            const item = findItem(id).project || findItem(id).task;
-            if (item) {
-                item.isCollapsed = !item.isCollapsed;
-                render();
-                autoSave();
-            }
             break;
         }
     }
